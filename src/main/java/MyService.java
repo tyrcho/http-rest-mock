@@ -6,11 +6,11 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 
 @Contract
-@Path("test")
+@Path("mock")
 @Singleton
 public interface MyService {
     @GET
-    @Path("hello")
+    @Path("hi")
     @Produces("text/plain")
     String sayHello();
 

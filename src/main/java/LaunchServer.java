@@ -25,8 +25,8 @@ public class LaunchServer {
         ResourceConfig rc = new ResourceConfig();
         registerJackson(rc);
         // test at http://localhost:12345/test/hello?arg=55
-        rc.register(simpleResource("/test", "/hello"));
-        // test http://localhost:12345/test/data or http://localhost:12345/test/hello
+        rc.registerResources(simpleResource("/test", "/hello"));
+        // test http://localhost:12345/mock/data or http://localhost:12345/mock/hi
         rc.register(mockedService());
 
 
