@@ -1,4 +1,5 @@
-import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 import org.glassfish.jersey.process.Inflector;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.model.Resource;
@@ -9,6 +10,10 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import java.net.URI;
 
+import static org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory.createHttpServer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 public class LaunchServer {
     public static void main(String[] args) {
         URI uri = UriBuilder.fromPath("/")
@@ -17,16 +22,33 @@ public class LaunchServer {
                 .scheme("http")
                 .build();
 
-        final ResourceConfig rc = new ResourceConfig();
-        rc.registerResources(simpleResource());
-        GrizzlyHttpServerFactory.createHttpServer(uri, rc, true);
+        ResourceConfig rc = new ResourceConfig();
+        registerJackson(rc);
+        // test at http://localhost:12345/test/hello?arg=55
+        rc.register(simpleResource("/test", "/hello"));
+        // test http://localhost:12345/test/data or http://localhost:12345/test/hello
+        rc.register(mockedService());
 
 
+        createHttpServer(uri, rc, true);
     }
 
-    // test at http://localhost:12345/test/hello?arg=55
-    private static Resource simpleResource() {
-        Builder builder = Resource.builder("/test");
+    private static MyService mockedService() {
+        MyService myService = mock(MyService.class);
+        when(myService.sayHello()).thenReturn("OK");
+        when(myService.checkData()).thenReturn(new TestObject("mocked value"));
+        return myService;
+    }
+
+    // This is mandatory to have JSON serialization of POJOs returned by our interface
+    private static void registerJackson(ResourceConfig rc) {
+        JacksonJaxbJsonProvider provider = new JacksonJaxbJsonProvider();
+        provider.setMapper(new ObjectMapper());
+        rc.register(provider);
+    }
+
+    private static Resource simpleResource(String path, String relativePath) {
+        Builder builder = Resource.builder(path);
 
         // cannot be replaced by a lambda, grizzly server won't handle request
         Inflector<ContainerRequestContext, Object> inflector = new Inflector<ContainerRequestContext, Object>() {
@@ -35,7 +57,7 @@ public class LaunchServer {
                 return Response.ok("Hello " + context.getUriInfo().getQueryParameters().get("arg")).build();
             }
         };
-        builder.addChildResource("/hello")
+        builder.addChildResource(relativePath)
                 .addMethod("GET")
                 .handledBy(inflector);
 
