@@ -12,14 +12,15 @@ public class LaunchServer {
         Mockito.when(myService.checkData()).thenReturn(new TestObject("mocked value"));
         // http://localhost:12345/test/hello?arg=55
         Resource resource = ServiceBuilder.simpleResource("/test", "/hello", context -> "Hello " + context.getUriInfo().getQueryParameters().get("arg"));
-        startServer("localhost", 12345, "http", resource, myService);
+        startServer("localhost",  "http", resource, myService);
     }
 
-    public static void startServer(String host, int port, String scheme, Resource resource, MyService service) {
-        SimpleHttpServer httpServer = new SimpleHttpServer(host, port, scheme);
+    static void startServer(String host, String scheme, Resource resource, MyService service) {
+        SimpleHttpServer httpServer = new SimpleHttpServer(host, scheme);
         httpServer.register(resource);
         httpServer.register(service);
         httpServer.start();
+        System.out.println(httpServer.uri);
     }
 
 }

@@ -13,16 +13,14 @@ public class RestDemoTest {
         MyService myService = mock(MyService.class);
         Mockito.when(myService.checkData()).thenReturn(new TestObject("mocked value"));
 
-        // TODO https://gitlab.kazan.priv.atos.fr/kazan/kazan-cutewizard/blob/master/testing/src/main/java/com/worldline/cutewizard/tests/web/Grizzly2Listener.java#L57
-
         SimpleHttpServer httpServer = new SimpleHttpServer(
                 "localhost",
-                12345,
                 "http");
         httpServer.register(myService);
         httpServer.start();
 
-        RestAssured.baseURI = "http://localhost:12345/mock";
+        RestAssured.baseURI = httpServer.uri + "mock";
+
         when().
                 get("/data").
                 then().
