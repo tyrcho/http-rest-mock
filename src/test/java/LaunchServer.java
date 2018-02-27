@@ -1,34 +1,25 @@
-import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.model.Resource;
+import org.mockito.Mockito;
 
-import javax.ws.rs.core.UriBuilder;
-import java.net.URI;
-
-import static org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory.createHttpServer;
 import static org.mockito.Mockito.mock;
 
 public class LaunchServer {
     public static void main(String[] args) {
-        startServer("localhost", 12345, "http", ServiceBuilder.simpleResource("/test", "/hello", context -> "Hello " + context.getUriInfo().getQueryParameters().get("arg")), RestDemoTest.mockedService());
+        MyService myService = mock(MyService.class);
+        // http://localhost:12345/mock/hi
+        Mockito.when(myService.sayHello()).thenReturn("OK");
+        // http://localhost:12345/mock/data
+        Mockito.when(myService.checkData()).thenReturn(new TestObject("mocked value"));
+        // http://localhost:12345/test/hello?arg=55
+        Resource resource = ServiceBuilder.simpleResource("/test", "/hello", context -> "Hello " + context.getUriInfo().getQueryParameters().get("arg"));
+        startServer("localhost", 12345, "http", resource, myService);
     }
 
     public static void startServer(String host, int port, String scheme, Resource resource, MyService service) {
-        URI uri = UriBuilder.fromPath("/")
-                .host(host)
-                .port(port)
-                .scheme(scheme)
-                .build();
-
-        ResourceConfig rc = new ResourceConfig();
-        ServiceBuilder.registerJackson(rc);
-        rc
-                // test at http://localhost:12345/test/hello?arg=55
-                .registerResources(resource)
-                // test at http://localhost:12345/mock/data or http://localhost:12345/mock/hi
-                .register(service);
-
-
-        createHttpServer(uri, rc, true);
+        SimpleHttpServer httpServer = new SimpleHttpServer(host, port, scheme);
+        httpServer.register(resource);
+        httpServer.register(service);
+        httpServer.start();
     }
 
 }

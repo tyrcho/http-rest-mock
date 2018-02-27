@@ -1,7 +1,4 @@
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 import org.glassfish.jersey.process.Inflector;
-import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.model.Resource;
 
 import javax.ws.rs.container.ContainerRequestContext;
@@ -26,10 +23,4 @@ public class ServiceBuilder {
         return builder.build();
     }
 
-    // This is mandatory to have JSON serialization of POJOs returned by our interface
-    public static void registerJackson(ResourceConfig rc) {
-        JacksonJaxbJsonProvider provider = new JacksonJaxbJsonProvider();
-        provider.setMapper(new ObjectMapper());
-        rc.register(provider);
-    }
 }

@@ -8,21 +8,19 @@ import static org.mockito.Mockito.mock;
 
 
 public class RestDemoTest {
-    public static MyService mockedService() {
-        MyService myService = mock(MyService.class);
-        Mockito.when(myService.sayHello()).thenReturn("OK");
-        Mockito.when(myService.checkData()).thenReturn(new TestObject("mocked value"));
-        return myService;
-    }
-
     @Test
     public void checkRest() {
-        LaunchServer.startServer(
+        MyService myService = mock(MyService.class);
+        Mockito.when(myService.checkData()).thenReturn(new TestObject("mocked value"));
+
+        // TODO https://gitlab.kazan.priv.atos.fr/kazan/kazan-cutewizard/blob/master/testing/src/main/java/com/worldline/cutewizard/tests/web/Grizzly2Listener.java#L57
+
+        SimpleHttpServer httpServer = new SimpleHttpServer(
                 "localhost",
                 12345,
-                "http",
-                ServiceBuilder.simpleResource("/test", "/hello", context -> "Hello " + context.getUriInfo().getQueryParameters().get("arg")),
-                mockedService());
+                "http");
+        httpServer.register(myService);
+        httpServer.start();
 
         RestAssured.baseURI = "http://localhost:12345/mock";
         when().
